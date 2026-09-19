@@ -6,7 +6,9 @@ forgiving than a strict zone-file parser would be:
 
     NAME [TTL] [CLASS] TYPE RDATA
 
-TTL and CLASS are both optional and may appear in either order.
+TTL and CLASS are both optional and may appear in either order. NAME may
+also be blank (the line starts with whitespace), in which case it inherits
+the previous record's name, matching standard zone-file behaviour.
 """
 
 from __future__ import annotations
@@ -45,13 +47,22 @@ def strip_comment(line: str) -> str:
     return line
 
 
-def parse_line(raw_line: str, line_number: int) -> Record | None:
-    line = strip_comment(raw_line).strip()
+def parse_line(raw_line: str, line_number: int, previous_name: str | None = None) -> Record | None:
+    uncommented = strip_comment(raw_line)
+    line = uncommented.strip()
     if not line:
         return None
 
     fields = line.split()
-    name = fields.pop(0)
+
+    # In zone-file style input, a line starting with whitespace has no NAME
+    # field and reuses the previous record's name.
+    if uncommented[:1] in (" ", "\t"):
+        if previous_name is None:
+            raise ParseError(line_number, raw_line, "blank name with no previous record to inherit from")
+        name = previous_name
+    else:
+        name = fields.pop(0)
 
     ttl: str | None = None
     record_class = "IN"

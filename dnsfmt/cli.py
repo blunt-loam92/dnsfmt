@@ -12,10 +12,12 @@ from .records import ParseError, Record, parse_line
 
 def read_records(stream: TextIO) -> list[Record]:
     records = []
+    previous_name: str | None = None
     for line_number, raw_line in enumerate(stream, start=1):
-        record = parse_line(raw_line, line_number)
+        record = parse_line(raw_line, line_number, previous_name)
         if record is not None:
             records.append(record)
+            previous_name = record.name
     return records
 
 

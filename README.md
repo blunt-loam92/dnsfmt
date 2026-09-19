@@ -65,12 +65,25 @@ everything after a `;` is a comment, are skipped. Anything that can't be
 parsed as at least `NAME TYPE RDATA` raises an error naming the offending
 line number.
 
+A line whose `NAME` field is blank (the line starts with whitespace)
+inherits the name of the record before it, matching standard zone-file
+behaviour:
+
+```
+www.example.com.  3600  IN  A      93.184.216.34
+                   3600  IN  AAAA   2001:db8::1
+```
+
+Both lines above end up qualified as `www.example.com.`. This inheritance
+resets at the start of each file (and at stdin), so a blank-name line at
+the top of a file with nothing before it is an error.
+
 ## Status
 
-Early skeleton. Parsing and alignment work for single-line records; there's
-no support yet for zone-file features like blank names inheriting the
-previous record's name, `$ORIGIN`/`$TTL` directives, or multi-line
-parenthesized rdata (e.g. `SOA`).
+Early skeleton. Parsing and alignment work for single-line records, and
+blank names inherit the previous record's name; there's no support yet
+for `$ORIGIN`/`$TTL` directives or multi-line parenthesized rdata (e.g.
+`SOA`).
 
 ## License
 
